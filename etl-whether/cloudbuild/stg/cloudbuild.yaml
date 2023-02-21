@@ -1,0 +1,55 @@
+steps:
+- id: 'Test：Unit'
+  name: bash
+  script: |
+    echo "Start UnitTest"
+    echo "End UnitTest"
+
+
+- id: 'Deploy：tf init'
+  name: 'hashicorp/terraform:1.1.2'
+  entrypoint: 'sh'
+  args:
+  - '-c'
+  - |
+      cd gcf/$_NAME/terraform/
+      terraform init -backend-config="bucket=$_BUKET_NAME_TFSTATE" -backend-config="prefix=$_ENV"
+
+
+- id: 'Deploy：tf plan'
+  name: 'hashicorp/terraform:1.1.2'
+  entrypoint: 'sh'
+  args:
+  - '-c'
+  - |
+      cd gcf/$_NAME/terraform/
+      terraform plan -var='project_id=$PROJECT_ID' -var 'region=$_REGION' -var 'env=$_ENV' -var 'name=$_NAME'
+
+
+- id: 'Deploy：tf apply'
+  name: 'hashicorp/terraform:1.1.2'
+  entrypoint: 'sh'
+  args:
+  - '-c'
+  - |
+      cd gcf/$_NAME/terraform/
+      terraform apply -auto-approve -var='project_id=$PROJECT_ID' -var 'region=$_REGION' -var 'env=$_ENV' -var 'name=$_NAME'
+
+
+- id: 'Test：System'
+  name: 'docker.io/library/python:3.8'
+  entrypoint: 'sh'
+  args:
+  - '-c'
+  - |
+      cd gcf/$_NAME/src
+      pip install -r requirements.txt
+      cd /workspace/gcf/$_NAME/tests/system
+      pytest test_system.py --project=$PROJECT_ID --location=$_REGION --name=$_ENV-$_NAME
+
+
+- id: 'Test：e2e'
+  name: bash
+  script: |
+    echo "Start e2eTest"
+    echo "End e2eTest"

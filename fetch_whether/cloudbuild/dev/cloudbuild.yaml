@@ -1,0 +1,16 @@
+steps:
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  args:
+  - gcloud
+  - functions
+  - deploy
+  - dev-fetch-whether-info
+  - --gen2
+  - --region=asia-northeast1
+  - --source=gcf/fetch_whether/src/
+  - --trigger-topic=fetch_info_whether
+  - --runtime=python310
+  - --entry-point=main
+  - --allow-unauthenticated
+  - --project=nari-training
+  - --update-env-vars=BQ_DATASET_NAME_WHETHER=dev_whether_db

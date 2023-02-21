@@ -4,12 +4,12 @@ import os
 
 
 @retry(Exception, tries=3, delay=2)
-def get_secret(project_id: str, secret_name: str, version='latest') -> any:
+def get_secret(project_id: str, secret_id: str, version='latest') -> any:
     """Get secret from SecretManager.
 
     Args:
         project_id (str): GCP ProjectId.
-        secret_name (str): SecretID set in Secret Manager.
+        secret_id (str): SecretID set in Secret Manager.
         version (str): Secret Version. Default value is latest.
 
     Returns:
@@ -19,14 +19,14 @@ def get_secret(project_id: str, secret_name: str, version='latest') -> any:
         NotFound: secret_id does not exist or is incorrect.
         Exception: Some Error Occurred.
     """
-    name = f"projects/{project_id}/secrets/{secret_name}/versions/{version}"
+    name = f"projects/{project_id}/secrets/{secret_id}/versions/{version}"
     client = secretmanager.SecretManagerServiceClient()
 
     try:
         res = client.access_secret_version(request={"name": name}).payload.data.decode("UTF-8")
         return res
     except exc.NotFound:
-        raise _send_log("Failed to get secret.", f"Secret {secret_name} was not found.", "ERROR")
+        raise _send_log("Failed to get secret.", f"Secret {secret_id} was not found.", "ERROR")
     except Exception as err:
         _send_log("Some Error Occurred so Retrying...", str(err), "WARNING")
         raise _send_log("Some Error Occurred.", str(err), "ERROR")
